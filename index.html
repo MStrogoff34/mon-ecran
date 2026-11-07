@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#3b5bdb">
+<title>Mon temps d'écran</title>
+<style>
+:root{
+  --bg:#f4f6fb; --card:#ffffff; --ink:#1d2233; --muted:#6b7280; --line:#e3e7f0;
+  --accent:#3b5bdb; --accent-soft:#e7ecff; --ok:#2f9e44; --ok-soft:#e6f6ea;
+  --warn:#e8590c; --warn-soft:#fff0e6; --bad:#c92a2a; --bad-soft:#ffe9e9;
+  --gold:#f59f00; --gold-soft:#fff6db;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11141c; --card:#1b2030; --ink:#eef1f8; --muted:#9aa3b5; --line:#2b3246;
+    --accent:#748ffc; --accent-soft:#232c4d; --ok:#51cf66; --ok-soft:#1d3324;
+    --warn:#ff922b; --warn-soft:#3a2617; --bad:#ff6b6b; --bad-soft:#3b1d1f;
+    --gold:#fcc419; --gold-soft:#3a3115;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:720px;margin:0 auto;padding:16px 16px 48px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+h1{font-size:1.5rem;margin:0}
+.day{color:var(--muted);font-size:.95rem}
+.chip{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.8rem;font-weight:600;background:var(--accent-soft);color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}
+.screen{text-align:center;padding:20px 16px}
+.screen .big{font-size:3rem;font-weight:800;line-height:1.1}
+.screen.ok{background:var(--ok-soft);border-color:var(--ok)}
+.screen.ok .big{color:var(--ok)}
+.screen.no{background:var(--bad-soft);border-color:var(--bad)}
+.screen.no .big{color:var(--bad)}
+.conds{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:12px}
+.cond{padding:4px 10px;border-radius:999px;font-size:.85rem;background:var(--card);border:1px solid var(--line)}
+.cond.done{border-color:var(--ok);color:var(--ok)}
+.detail{color:var(--muted);font-size:.9rem;margin-top:8px}
+.next{font-size:1.05rem;font-weight:700;margin:20px 4px 4px}
+.routine h2{font-size:1.15rem;margin:0 0 4px;display:flex;justify-content:space-between;align-items:center}
+.routine .when{color:var(--muted);font-size:.85rem;font-weight:500}
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin:8px 0 10px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+.routine.locked{opacity:.55}
+.routine.vide h2{color:var(--muted)}
+.item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:12px 2px;font:inherit;color:inherit;cursor:pointer;min-height:52px}
+.item:first-of-type{border-top:0}
+.item:disabled{cursor:default}
+.box{flex:0 0 30px;height:30px;border-radius:9px;border:2px solid var(--line);display:grid;place-items:center;font-size:1.1rem;color:#fff;transition:.15s}
+.item.on .box{background:var(--ok);border-color:var(--ok)}
+.item.on .lbl{color:var(--muted);text-decoration:line-through}
+.ico{width:1.6em;text-align:center}
+.bonus .item.on .box{background:var(--gold);border-color:var(--gold)}
+.item.na{opacity:.45}
+.item.na .lbl::after{content:" · pas aujourd'hui";font-size:.8rem;color:var(--muted)}
+.visa{font-size:.8rem;font-weight:700;padding:2px 8px;border-radius:99px;margin-left:6px}
+.visa.ok{background:var(--ok-soft);color:var(--ok)}
+.visa.wait{background:var(--warn-soft);color:var(--warn)}
+.tag{margin-left:auto;font-size:.85rem;font-weight:700;color:var(--gold);white-space:nowrap}
+.pen{color:var(--bad)}
+.parent-btn{background:none;border:1px solid var(--line);color:var(--muted);border-radius:12px;padding:8px 12px;font:inherit;font-size:.9rem;cursor:pointer}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer;min-height:44px}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+.btn.red{background:var(--bad)}
+.btn.gold{background:var(--gold);color:#222}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+input{font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:44px}
+.log{font-size:.9rem;margin:6px 0 0;padding-left:18px}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
+td.num,th.num{text-align:right}
+.note{color:var(--muted);font-size:.85rem}
+.hidden{display:none}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Mon temps d'écran 🎮</h1>
+      <div class="day" id="today"></div>
+    </div>
+    <button class="parent-btn" id="openParent">🔒 Parents</button>
+  </header>
+
+  <div id="screenCard"></div>
+  <div id="cycle"></div>
+  <div id="bonusZone"></div>
+
+  <div id="parent" class="card hidden"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== Règles ===== */
+const BASE = {0:45,1:30,2:30,3:45,4:30,5:30,6:45}; // dim=0
+const ROUTINES = {
+  soir: {titre:"🌙 Le soir", items:[
+    {id:"devoirs", ico:"📚", txt:"Faire mes devoirs pour le lendemain", si:"ecoleDemain"},
+    {id:"carnet", ico:"📒", txt:"Vérifier le carnet de liaison et prévenir s'il y a un message de l'école", si:"ecoleDemain"},
+    {id:"mettre_table", ico:"🍽️", txt:"Mettre la table"},
+    {id:"debarrasser", ico:"🧽", txt:"Débarrasser la table"},
+    {id:"douche", ico:"🚿", txt:"Prendre ma douche"},
+    {id:"linge_propre", ico:"👕", txt:"Plier et ranger le linge propre de l'étendoir (s'il y en a)"},
+    {id:"linge_sale_soir", ico:"🧺", txt:"Mettre mon linge sale au panier"},
+    {id:"vetements", ico:"👖", txt:"Préparer mes vêtements pour demain"},
+    {id:"sac", ico:"🎒", txt:"Préparer mon sac de cours", si:"ecoleDemain"},
+    {id:"dents_soir", ico:"🪥", txt:"Me brosser les dents"},
+    {id:"sdb_soir", ico:"🧴", txt:"Ranger mes affaires dans la salle de bain"},
+    {id:"coucher", ico:"😴", txt:"Au lit à 21 h 30 (je peux lire)", si:"coucher"}
+  ]},
+  matin: {titre:"🌅 Le matin", items:[
+    {id:"pdj", ico:"🥣", txt:"Débarrasser le petit déjeuner et laver la table"},
+    {id:"tiroir_matin", ico:"🍪", txt:"Vérifier que les sachets du tiroir (goûter et petit déjeuner) sont bien fermés"},
+    {id:"dents_matin", ico:"🪥", txt:"Me brosser les dents"},
+    {id:"sdb_matin", ico:"🧴", txt:"Ranger mes affaires dans la salle de bain"},
+    {id:"linge_sale_matin", ico:"🧺", txt:"Mettre mon linge sale au panier"},
+    {id:"bus", ico:"🚌", txt:"Être à l'heure pour mon bus", si:"ecole"}
+  ]},
+  retour: {titre:"🎒 Le retour du collège", si:"ecole", items:[
+    {id:"ranger", ico:"👟", txt:"Ranger mes chaussures, mon manteau et mon cartable"},
+    {id:"gouter", ico:"🧃", txt:"Débarrasser la table du goûter"},
+    {id:"tiroir_retour", ico:"🍪", txt:"Vérifier que les sachets du tiroir sont bien fermés"}
+  ]}
+};
+const BONUS_ENFANT = [{id:"lave_vaisselle", ico:"🍽️", txt:"Vider le lave-vaisselle", min:10}];
+const BONUS_PARENTS = [{id:"attitude", ico:"⭐", txt:"Tout fait sans relance, et sans râler", min:10}];
+const PENALITES = [
+  {id:"respect", ico:"⛔", txt:"Manque de respect", min:"tout"},
+  {id:"toilettes", ico:"🚽", txt:"Laisser les toilettes sales", min:10},
+  {id:"parole", ico:"🗣️", txt:"Couper la parole plusieurs fois", min:10},
+  {id:"redemander", ico:"🔁", txt:"Redemander plusieurs fois la même chose", min:10}
+];
+
+/* ===== Stockage (sur la tablette uniquement) ===== */
+const KEY = "mon-ecran-v1";
+let S;
+function load(){
+  try{ S = JSON.parse(localStorage.getItem(KEY)) || null; }catch(e){ S = null; }
+  if(!S) S = {start: iso(new Date()), checks:{}, entries:[], vacances:[], code:null};
+  if(!S.visas) S.visas = {};
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+/* ===== Dates ===== */
+function iso(d){ const z=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate()); }
+function parse(s){ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); }
+function add(s,n){ const d=parse(s); d.setDate(d.getDate()+n); return iso(d); }
+function dow(s){ return parse(s).getDay(); }
+function enVacances(s){ return S.vacances.some(v => s>=v.du && s<=v.au); }
+function ecole(s){ const w=dow(s); return w>=1 && w<=5 && !enVacances(s); }
+const fmtJour = s => parse(s).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+
+/* Un « tour » = l'écran du jour D : soir de D−1, matin de D, retour de l'école de D. */
+function cond(si, D){
+  if(!si) return true;
+  if(si==="ecole") return ecole(D);
+  if(si==="ecoleDemain") return ecole(D);
+  if(si==="coucher"){ const w=dow(add(D,-1)); return w>=1 && w<=4 && ecole(D); }
+  return true;
+}
+function dateOf(routine, D){ return routine==="soir" ? add(D,-1) : D; }
+function allItems(routine, D){
+  const r = ROUTINES[routine], actif = !r.si || cond(r.si, D);
+  return r.items.map(it => ({...it, requis: actif && cond(it.si, D)}));
+}
+function itemsOf(routine, D){ return allItems(routine, D).filter(it => it.requis); }
+function premier(routine, D){ return routine==="soir" && D<=S.start; }
+function visaKey(routine, D){ return dateOf(routine,D)+"|"+routine; }
+function hasVisa(routine, D){ return !!S.visas[visaKey(routine,D)]; }
+function ck(routine, D, id){ return !!S.checks[dateOf(routine,D)+"|"+routine+"|"+id]; }
+function routineDone(routine, D){
+  if(premier(routine, D)) return true; // premier jour : pas de « veille »
+  return itemsOf(routine, D).every(it => ck(routine, D, it.id));
+}
+/* Validée = tout coché + visa parent (sauf routine sans action requise ou offerte) */
+function routineOk(routine, D){
+  if(premier(routine, D) || !itemsOf(routine, D).length) return true;
+  return routineDone(routine, D) && hasVisa(routine, D);
+}
+function unlocked(D){ return ["soir","matin","retour"].every(r => routineOk(r, D)); }
+
+/* Bonus et pénalités : rattachés à l'écran pas encore débloqué au moment de la saisie */
+function cible(){ const t=iso(new Date()); return unlocked(t) ? add(t,1) : t; }
+function bilan(D){
+  const es = S.entries.filter(e => e.cible===D);
+  let bonus=0, pen=0, respect=false;
+  es.forEach(e=>{ if(e.type==="bonus") bonus+=e.min; else if(e.min==="tout") respect=true; else pen+=e.min; });
+  const base = BASE[dow(D)];
+  const total = !unlocked(D) || respect ? 0 : Math.max(0, base + bonus - pen);
+  return {base, bonus, pen, respect, total, es};
+}
+
+/* ===== Affichage ===== */
+const $ = id => document.getElementById(id);
+function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),1800); }
+
+function render(){
+  const T = iso(new Date());
+  const mode = enVacances(T) ? "vacances" : (ecole(T) ? "jour d'école" : "week-end");
+  $("today").innerHTML = fmtJour(T) + " · <span class='chip'>" + mode + "</span>";
+
+  // Carte écran du jour
+  const b = bilan(T), ok = unlocked(T);
+  const labs = {soir:"🌙 hier soir", matin:"🌅 ce matin", retour:"🎒 retour du collège"};
+  const conds = ["soir","matin","retour"].map(r=>{
+    const v = routineOk(r,T), d = routineDone(r,T);
+    return "<span class='cond "+(v?"done":"")+"'>"+(v?"✅ ":(d?"⏳ ":"⬜ "))+labs[r]+"</span>";
+  }).join("");
+  let det = "Base "+b.base+" min";
+  if(b.bonus) det += " · bonus +"+b.bonus;
+  if(b.pen) det += " · pénalités −"+b.pen;
+  if(b.respect) det = "Manque de respect : pas d'écran aujourd'hui";
+  const attente = ["soir","matin","retour"].some(r => routineDone(r,T) && !routineOk(r,T));
+  $("screenCard").innerHTML = "<div class='card screen "+(ok && !b.respect ? "ok":"no")+"'>"+
+    "<div>Écran d'aujourd'hui</div><div class='big'>"+(ok ? (b.respect?"0 min":b.total+" min") : "🔒")+"</div>"+
+    "<div class='detail'>"+(ok ? det : "Termine tes routines pour débloquer "+b.base+" min"+(attente?" · ⏳ = en attente du visa des parents":""))+"</div>"+
+    "<div class='conds'>"+conds+"</div></div>";
+
+  // Toute la liste, toujours affichée : hier soir → ce matin → retour du collège → écran, puis ce soir (pour demain)
+  const blocs = [
+    {r:"soir", D:T, quand:"hier soir"},
+    {r:"matin", D:T, quand:"ce matin"},
+    {r:"retour", D:T, quand:"aujourd'hui"},
+    {ecran:true},
+    {r:"soir", D:add(T,1), quand:"ce soir · compte pour demain"}
+  ];
+  let h = "";
+  blocs.forEach(x=>{
+    if(x.ecran){
+      h += "<div class='card routine "+(ok?"full":"")+"'><h2>🎮 Écran d'aujourd'hui <span class='when'>"+(ok?"débloqué ✅":"🔒 "+BASE[dow(T)]+" min de base")+"</span></h2></div>";
+      return;
+    }
+    const r=x.r, D=x.D, tous=allItems(r,D), req=tous.filter(i=>i.requis);
+    const pr = premier(r,D);
+    const n = req.filter(it=>ck(r,D,it.id)).length;
+    const pct = req.length ? Math.round(100*n/req.length) : 0;
+    const fini = !pr && req.length && n===req.length;
+    let etat;
+    if(pr) etat = "offert 🎁";
+    else if(!req.length) etat = "pas aujourd'hui";
+    else etat = n+"/"+req.length + (hasVisa(r,D) ? "<span class='visa ok'>👍 visa</span>" : (n===req.length ? "<span class='visa wait'>⏳ visa parent</span>" : ""));
+    h += "<section class='card routine "+(fini?"full ":"")+(pr?"offert ":"")+(!req.length?"vide":"")+"'>"+
+      "<h2>"+ROUTINES[r].titre.replace("retour de l'école","retour du collège")+" <span class='when'>"+x.quand+" · "+etat+"</span></h2>"+
+      (req.length ? "<div class='bar'><i style='width:"+pct+"%'></i></div>" : "");
+    tous.forEach(it=>{
+      const on = ck(r,D,it.id), na = !it.requis;
+      h += "<button class='item "+(on?"on ":"")+(na?"na":"")+"' data-r='"+r+"' data-d='"+D+"' data-id='"+it.id+"' "+(na||hasVisa(r,D)?"disabled":"")+">"+
+        "<span class='box'>"+(on?"✓":"")+"</span><span class='ico'>"+it.ico+"</span><span class='lbl'>"+it.txt+"</span></button>";
+    });
+    h += "</section>";
+  });
+  $("cycle").innerHTML = h;
+
+  // Bonus cochés par l'enfant
+  const C = cible();
+  let bz = "<section class='card routine bonus'><h2>✨ Mes bonus <span class='when'>comptent pour "+(C===T?"aujourd'hui":"demain")+"</span></h2>";
+  BONUS_ENFANT.forEach(x=>{
+    const on = S.entries.some(e=>e.cible===C && e.id===x.id);
+    bz += "<button class='item "+(on?"on":"")+"' data-bonus='"+x.id+"'><span class='box'>"+(on?"✓":"")+"</span><span class='ico'>"+x.ico+"</span><span class='lbl'>"+x.txt+"</span><span class='tag'>+"+x.min+" min</span></button>";
+  });
+  bz += "<p class='note'>⭐ +10 min si tout est fait sans qu'on te le rappelle et sans râler : ce sont les parents qui le donnent le soir.</p></section>";
+  $("bonusZone").innerHTML = bz;
+}
+
+document.addEventListener("click", e=>{
+  const it = e.target.closest(".item[data-r]");
+  if(it && !it.disabled){
+    const k = dateOf(it.dataset.r, it.dataset.d)+"|"+it.dataset.r+"|"+it.dataset.id;
+    const avant = unlocked(iso(new Date()));
+    if(S.checks[k]) delete S.checks[k]; else S.checks[k] = true;
+    save(); render();
+    if(!avant && unlocked(iso(new Date()))) toast("🎉 Écran débloqué !");
+    return;
+  }
+  const bo = e.target.closest(".item[data-bonus]");
+  if(bo){
+    const x = BONUS_ENFANT.find(b=>b.id===bo.dataset.bonus), C = cible();
+    const i = S.entries.findIndex(en=>en.cible===C && en.id===x.id);
+    if(i>=0) S.entries.splice(i,1); else { S.entries.push({type:"bonus", id:x.id, min:x.min, cible:C, at:new Date().toISOString()}); toast("✨ +"+x.min+" min"); }
+    save(); render();
+  }
+});
+
+/* ===== Zone parents ===== */
+let parentOuvert = false;
+$("openParent").onclick = ()=>{ parentOuvert = !parentOuvert; renderParent(); };
+function renderParent(){
+  const p = $("parent");
+  if(!parentOuvert){ p.dataset.ok=""; p.classList.add("hidden"); $("openParent").textContent="🔒 Parents"; return; }
+  p.classList.remove("hidden"); $("openParent").textContent="✖ Fermer";
+  if(!S.code){
+    p.innerHTML = "<h2>🔒 Zone parents</h2><p>Choisissez un code parent (4 chiffres ou plus).</p>"+
+      "<div class='row'><input id='c1' type='password' inputmode='numeric' placeholder='Code'><input id='c2' type='password' inputmode='numeric' placeholder='Confirmer'><button class='btn' id='setCode'>Enregistrer</button></div>";
+    $("setCode").onclick = ()=>{ const a=$("c1").value, b=$("c2").value;
+      if(a.length<4 || a!==b){ toast("Codes différents ou trop courts"); return; }
+      S.code=a; save(); p.dataset.ok="1"; renderParent(); };
+    return;
+  }
+  if(p.dataset.ok!=="1"){
+    p.innerHTML = "<h2>🔒 Zone parents</h2><div class='row'><input id='cc' type='password' inputmode='numeric' placeholder='Code parent'><button class='btn' id='goCode'>Entrer</button></div>";
+    $("goCode").onclick = ()=>{ if($("cc").value===S.code){ p.dataset.ok="1"; renderParent(); } else toast("Code incorrect"); };
+    return;
+  }
+  const T = iso(new Date()), C = cible();
+  let h = "<h2>👨‍👩‍👦 Zone parents</h2><p class='note'>Ce que vous saisissez maintenant compte pour l'écran "+(C===T?"d'aujourd'hui (pas encore débloqué)":"de demain")+".</p>";
+  const vb = [{r:"soir",D:T,l:"🌙 Hier soir"},{r:"matin",D:T,l:"🌅 Ce matin"},{r:"retour",D:T,l:"🎒 Retour du collège"},{r:"soir",D:add(T,1),l:"🌙 Ce soir (pour demain)"}]
+    .filter(x=>itemsOf(x.r,x.D).length && !premier(x.r,x.D));
+  h += "<h3>✅ Visas des routines</h3><p class='note'>L'écran ne se débloque qu'avec votre visa sur chaque routine. Pour corriger une case, retirez d'abord le visa.</p><div class='row'>"+
+    vb.map(x=>{ const n=itemsOf(x.r,x.D).filter(it=>ck(x.r,x.D,it.id)).length, m=itemsOf(x.r,x.D).length, v=hasVisa(x.r,x.D);
+      return "<button class='btn "+(v?"":"ghost")+"' data-visa='"+x.r+"|"+x.D+"'>"+(v?"👍 ":"")+x.l+" · "+n+"/"+m+(v?" (retirer)":"")+"</button>"; }).join("")+"</div>";
+  h += "<h3>⭐ Bonus du soir</h3><div class='row'>"+BONUS_PARENTS.map(x=>"<button class='btn gold' data-pe='bonus' data-id='"+x.id+"'>"+x.ico+" "+x.txt+" (+"+x.min+")</button>").join("")+"</div>";
+  h += "<h3>⚠️ Pénalités</h3><div class='row'>"+PENALITES.map(x=>"<button class='btn "+(x.min==="tout"?"red":"ghost")+"' data-pe='pen' data-id='"+x.id+"'>"+x.ico+" "+x.txt+" ("+(x.min==="tout"?"tout annulé":"−"+x.min)+")</button>").join("")+"</div>";
+  const es = S.entries.filter(e=>e.cible===C);
+  h += "<h3>Saisi pour "+(C===T?"aujourd'hui":"demain")+"</h3>"+(es.length?"<ul class='log'>"+es.map((e,i)=>{
+      const def=[...BONUS_ENFANT,...BONUS_PARENTS,...PENALITES].find(x=>x.id===e.id);
+      return "<li>"+def.ico+" "+def.txt+" <span class='"+(e.type==="pen"?"pen":"")+"'>"+(e.type==="bonus"?"+"+e.min:(e.min==="tout"?"tout annulé":"−"+e.min))+"</span> <button class='parent-btn' data-del='"+S.entries.indexOf(e)+"'>annuler</button></li>";
+    }).join("")+"</ul>":"<p class='note'>Rien pour l'instant.</p>");
+
+  h += "<h3>🏖️ Vacances</h3><div class='row'><input id='vdu' type='date'><input id='vau' type='date'><button class='btn ghost' id='addV'>Ajouter</button></div>"+
+    (S.vacances.length?"<ul class='log'>"+S.vacances.map((v,i)=>"<li>du "+v.du+" au "+v.au+" <button class='parent-btn' data-delv='"+i+"'>retirer</button></li>").join("")+"</ul>":"")+
+    "<p class='note'>Règles du week-end et des vacances : à définir (pour l'instant, mêmes routines sans les actions liées à l'école).</p>";
+
+  // Historique pour la revue mensuelle
+  h += "<h3>📅 Historique (30 jours)</h3><table><tr><th>Jour</th><th>Routines</th><th class='num'>Bonus</th><th class='num'>Pén.</th><th class='num'>Écran</th></tr>";
+  let tot=0, jours=0, okj=0;
+  for(let i=0;i<30;i++){
+    const D = add(T,-i); if(D<S.start) break;
+    const b = bilan(D); jours++; if(unlocked(D)) okj++; tot+=b.total;
+    h += "<tr><td>"+parse(D).toLocaleDateString("fr-FR",{weekday:"short",day:"2-digit",month:"2-digit"})+"</td><td>"+(unlocked(D)?"✅":"❌")+"</td><td class='num'>"+(b.bonus?"+"+b.bonus:"")+"</td><td class='num'>"+(b.respect?"⛔":(b.pen?"−"+b.pen:""))+"</td><td class='num'>"+b.total+" min</td></tr>";
+  }
+  h += "</table><p class='note'>"+okj+" jour(s) sur "+jours+" avec routines complètes · "+tot+" min d'écran au total.</p>";
+  h += "<div class='row'><button class='btn ghost' id='lock'>🔒 Verrouiller</button><button class='btn ghost' id='chg'>Changer le code</button></div>";
+  p.innerHTML = h;
+
+  p.querySelectorAll("[data-pe]").forEach(bt=>bt.onclick=()=>{
+    const list = bt.dataset.pe==="bonus"?BONUS_PARENTS:PENALITES, x=list.find(y=>y.id===bt.dataset.id);
+    S.entries.push({type:bt.dataset.pe, id:x.id, min:x.min, cible:cible(), at:new Date().toISOString()});
+    save(); render(); renderParent(); toast("Enregistré");
+  });
+  p.querySelectorAll("[data-visa]").forEach(bt=>bt.onclick=()=>{ const [r,D]=bt.dataset.visa.split("|"), k=visaKey(r,D); if(S.visas[k]) delete S.visas[k]; else S.visas[k]=true; save(); render(); renderParent(); });
+  p.querySelectorAll("[data-del]").forEach(bt=>bt.onclick=()=>{ S.entries.splice(+bt.dataset.del,1); save(); render(); renderParent(); });
+  p.querySelectorAll("[data-delv]").forEach(bt=>bt.onclick=()=>{ S.vacances.splice(+bt.dataset.delv,1); save(); render(); renderParent(); });
+  $("addV").onclick=()=>{ const du=$("vdu").value, au=$("vau").value; if(!du||!au||au<du){ toast("Dates à vérifier"); return; } S.vacances.push({du,au}); save(); render(); renderParent(); };
+  $("lock").onclick=()=>{ p.dataset.ok=""; parentOuvert=false; renderParent(); };
+  $("chg").onclick=()=>{ S.code=null; save(); renderParent(); };
+}
+
+load(); save(); render();
+// Rafraîchit à minuit et quand on revient sur la page
+setInterval(render, 60000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) render(); });
+</script>
+</body>
+</html>
