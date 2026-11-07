@@ -289,7 +289,7 @@ document.addEventListener("click", e=>{
 
 /* ===== Zone parents ===== */
 let parentOuvert = false;
-$("openParent").onclick = ()=>{ parentOuvert = !parentOuvert; renderParent(); };
+$("openParent").onclick = ()=>{ parentOuvert = !parentOuvert; renderParent(); if(parentOuvert) $("parent").scrollIntoView({behavior:"smooth", block:"start"}); };
 function renderParent(){
   const p = $("parent");
   if(!parentOuvert){ p.dataset.ok=""; p.classList.add("hidden"); $("openParent").textContent="🔒 Parents"; return; }
